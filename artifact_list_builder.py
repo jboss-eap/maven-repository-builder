@@ -677,13 +677,16 @@ class ArtifactListBuilder:
 
     def _listIndyRepository(self, repoUrl, classifiersFilter, prefix=""):
         logging.debug("Listing Indy remote repository %s prefix '%s'", repoUrl, prefix)
+        url = repoUrl.replace('indy://', 'http://').replace('indys://', 'https://') + prefix
+
         try:
-            url = repoUrl.replace('indy', 'http') + prefix
             response = requests.get(url)
             if response.status_code != 200:
                 logging.warning("Cannot retrieve listing for: " + url + ". Error: " + str(response))
+                return {}
             else:
                 out = response.json()
+                # logging.debug(out)
         except IOError as err:
             if prefix:
                 logging.warning(str(err))
@@ -691,27 +694,36 @@ class ArtifactListBuilder:
             else:
                 raise err
 
-        # ^./(groupId)/(artifactId)/(version)/(filename)$
+        # ^/(groupId)/(artifactId)/(version)/(filename)$
         regexGAVF = re.compile(r'/(.+)/([^/]+)/([^/]+)/([^/]+\.[^/.]+)$')
         gavExtClass = {}  # { (g,a,v): {ext: set([class])} }
         suffixes = {}     # { (g,a,v): suffix }
 
-        listings = out.get('listingURLs')
+        listings = out.get('listingUrls')
+        # logging.debug(listings)
         if listings is None or len(listings) < 1:
-            return
+            logging.warning("No results from: " + url)
+            return {}
 
         for listing in listings:
             line = listing['path']
+            # logging.debug("Process listing: " + line)
             if (line):
-                line = "./" + prefix + line[2:]
                 gavf = regexGAVF.match(line)
+                # if gavf is None:
+                #     logging.debug("No GAVTC match for: " + line)
+                # else:
                 if gavf is not None:
+                    # logging.debug("Group 1 of regex: " + gavf.group(1))
                     groupId = gavf.group(1).replace('/', '.')
                     artifactId = gavf.group(2)
                     version = gavf.group(3)
                     filename = gavf.group(4)
 
+                    # logging.debug("Found G: %s, A: %s, V: %s, F: %s" % (groupId, artifactId, version, filename))
+
                     if filename in self.IGNORED_REPOSITORY_FILES:
+                        # logging.debug( "Ignoring: " + filename )
                         continue
 
                     (extsAndClass, suffix) = self._getExtensionsAndClassifiers(artifactId, version, [filename])
@@ -823,7 +835,6 @@ class ArtifactListBuilder:
         if mavenArtifact in artifacts:
             artifacts[mavenArtifact].merge(ArtifactSpec(url, artTypes))
         else:
-            logging.debug("Adding artifact %s", str(mavenArtifact))
             artifacts[mavenArtifact] = ArtifactSpec(url, artTypes)
 
     def _containsMainArtifact(self, extsAndClass):

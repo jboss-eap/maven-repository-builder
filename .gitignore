@@ -1,3 +1,5 @@
+.venv
+venv
 .project
 .pydevproject
 maven_repo_builder.nja
