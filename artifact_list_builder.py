@@ -10,6 +10,7 @@ from multiprocessing import Lock
 from multiprocessing import Queue
 from subprocess import Popen
 from subprocess import PIPE
+import requests
 
 import maven_repo_util
 from maven_artifact import MavenArtifact
@@ -553,6 +554,9 @@ class ArtifactListBuilder:
             elif protocol == 'http' or protocol == 'https':
                 for prefix in prefixes:
                     artifacts.update(self._listRemoteRepository(urlWithSlash, classifiersFilter, prefix))
+            elif protocol == 'indy' or protocol == 'indys':
+                for prefix in prefixes:
+                    artifacts.update(self._listIndyRepository(urlWithSlash, classifiersFilter, prefix))
             else:
                 raise "Invalid protocol!", protocol
 
@@ -644,6 +648,60 @@ class ArtifactListBuilder:
         gavExtClass = {}  # { (g,a,v): {ext: set([class])} }
         suffixes = {}     # { (g,a,v): suffix }
         for line in out.split('\n'):
+            if (line):
+                line = "./" + prefix + line[2:]
+                gavf = regexGAVF.match(line)
+                if gavf is not None:
+                    groupId = gavf.group(1).replace('/', '.')
+                    artifactId = gavf.group(2)
+                    version = gavf.group(3)
+                    filename = gavf.group(4)
+
+                    if filename in self.IGNORED_REPOSITORY_FILES:
+                        continue
+
+                    (extsAndClass, suffix) = self._getExtensionsAndClassifiers(artifactId, version, [filename])
+
+                    gav = (groupId, artifactId, version)
+
+                    gavExtClass.setdefault(gav, {})
+                    self._updateExtensionsAndClassifiers(gavExtClass[gav], extsAndClass, classifiersFilter.get(gav))
+
+                    if suffix is not None and (gav not in suffixes or suffixes[gav] < suffix):
+                        suffixes[gav] = suffix
+
+        artifacts = {}
+        for gav in gavExtClass:
+            self._addArtifact(artifacts, gav[0], gav[1], gav[2], gavExtClass[gav], suffixes.get(gav), repoUrl)
+        return artifacts
+
+    def _listIndyRepository(self, repoUrl, classifiersFilter, prefix=""):
+        logging.debug("Listing Indy remote repository %s prefix '%s'", repoUrl, prefix)
+        try:
+            url = repoUrl.replace('indy', 'http') + prefix
+            response = requests.get(url)
+            if response.status_code != 200:
+                logging.warning("Cannot retrieve listing for: " + url + ". Error: " + str(response))
+            else:
+                out = response.json()
+        except IOError as err:
+            if prefix:
+                logging.warning(str(err))
+                out = {}
+            else:
+                raise err
+
+        # ^./(groupId)/(artifactId)/(version)/(filename)$
+        regexGAVF = re.compile(r'/(.+)/([^/]+)/([^/]+)/([^/]+\.[^/.]+)$')
+        gavExtClass = {}  # { (g,a,v): {ext: set([class])} }
+        suffixes = {}     # { (g,a,v): suffix }
+
+        listings = out.get('listingURLs')
+        if listings is None or len(listings) < 1:
+            return
+
+        for listing in listings:
+            line = listing['path']
             if (line):
                 line = "./" + prefix + line[2:]
                 gavf = regexGAVF.match(line)
