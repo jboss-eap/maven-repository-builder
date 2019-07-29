@@ -63,6 +63,7 @@ def depListToArtifactList(depList):
 
 
 def fetchArtifactList(remoteRepoUrl, localRepoDir, artifactList, checksumMode, threadnum):
+    remoteRepoUrl = remoteRepoUrl.replace('indy://', 'http://').replace('indys://', 'https://')
     """Create a Maven repository based on a remote repository url and a list of artifacts"""
     logging.info('Retrieving artifacts from repository: %s', remoteRepoUrl)
     if not os.path.exists(localRepoDir):
