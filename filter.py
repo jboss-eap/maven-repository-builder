@@ -32,7 +32,7 @@ class Filter:
             artifactList = self._filterMultipleVersions(artifactList)
 
         if self.config.excludedRepositories:
-			artifactList = self._filterExcludedRepositories(artifactList, threadnum)
+            artifactList = self._filterExcludedRepositories(artifactList, threadnum)
 
         return artifactList
 

@@ -44,7 +44,8 @@ class ArtifactListBuilder:
                                  "tar.gz:project-sources", "xml:site", "zip:patches",
                                  "zip:scm-sources", "zip:source-release"])
 
-    IGNORED_REPOSITORY_FILES = set(["maven-metadata.xml", "maven-metadata.xml.md5", "maven-metadata.xml.sha1"])
+    IGNORED_REPOSITORY_FILES = set(["maven-metadata.xml", "maven-metadata.xml.md5", "maven-metadata.xml.sha1",
+                                    "maven-metadata.xml.sha256"])
 
     MAX_THREADS_DICT = {"mead-tag": 2, "dependency-list": 1, "dependency-graph": 6, "repository": 2}
 
@@ -88,7 +89,7 @@ class ArtifactListBuilder:
                     break
 
             at_least_1_runs = False
-            if not finished:            
+            if not finished:
                 self.results_lock.acquire()
                 finished = sorted(list(self.results.keys()))
                 self.results_lock.release()
