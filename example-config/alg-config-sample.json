@@ -6,8 +6,8 @@
     {
       "type": "mead-tag",
       "tag-name": "brms-5.3.0",
-      "koji-url": "http://brewhub.devel.redhat.com/brewhub/",
-      "download-root-url": "http://download.devel.redhat.com/brewroot/packages/",
+      "koji-url": "http://koji.domain.com/kojihub/",
+      "download-root-url": "http://download.devel.domain.com/kojiroot/packages/",
       "included-gav-patterns-ref": "gav-patterns.list"
     },
     {
@@ -20,7 +20,8 @@
     },
     {
       "type": "dependency-graph",
-      "indy-url": "http://indy-dev.app.eng.bos.redhat.com:8080/",
+      "carto-url": "http://cartographer.domain.com:8080/",
+      "wsid": "workspace",
       "source-key": "group:central+eap6+soa-brms-6-build",
       "excluded-sources": [
         "group:central+eap6"
@@ -34,17 +35,30 @@
     },
     {
       "type": "repository",
-      "repo-url": "https://repository-basic.engineering.redhat.com/nexus/content/repositories/scratch-release-soa-brms-6-build",
+      "repo-url": "https://repository.domain.com/nexus/content/repositories/scratch-release-soa-brms-6-build",
+      "included-gav-patterns-ref": "gav-patterns.list"
+    },
+    {
+      "type": "repository",
+      "repo-url": "https://repository.domain.com/nexus/content/repositories/scratch-release-soa-brms-6-build",
       "included-gav-patterns-ref": "gav-patterns.list"
     },
     {
       "type": "repository",
       "repo-url": [
-        "https://repository.engineering.redhat.com/nexus/content/repositories/jboss-public/",
+        "https://repository.domain.com/nexus/content/repositories/jboss-public/",
         "file:///var/maven/repository/test-repo/"
       ],
       "included-gav-patterns-ref": "gav-patterns.list"
+    },
+    {
+      "type": "repository",
+      "repo-url": [
+        "indys://indy.domain.com/api/browse/maven/group/public"
+      ],
+      "included-gav-patterns-ref": "gav-patterns.list"
     }
+
   ],
   "excluded-gav-patterns-ref": [
     "gav-patterns-excl.list",

@@ -196,7 +196,9 @@ For an example config with full config structure see [Sample Config](https://git
             *   **patcher-ids** - list of patcher ID strings for Indy.
         *   "repository" - a local or remote repository to crawl and include found artifacts. Additional artifact
             source config fields for this type are
-            *   **repo-url** -one repository URL or a list of them, which should be crawled
+            *   **repo-url** -one repository URL or a list of them, which should be crawled. For Indy repository manager 
+                optimized listing should be used. That can be achieved by using indy/indys as protocol, e.g. 
+                indy://server.domain.com/api/content/maven/group/public
             *   **included-gav-patterns-ref** - the same as the corresponding MEAD tag's field (see above)
 
 
